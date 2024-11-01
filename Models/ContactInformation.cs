@@ -1,5 +1,8 @@
-﻿namespace CustomerBalancePlatform.Models
+﻿using Microsoft.EntityFrameworkCore;
+
+namespace CustomerBalancePlatform.Models
 {
+    [Owned]
     public class ContactInformation
     {
         public string Email { get; set; } = string.Empty;
