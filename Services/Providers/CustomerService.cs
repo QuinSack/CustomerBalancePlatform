@@ -1,9 +1,10 @@
 ﻿using CustomerBalancePlatform.Models;
+using CustomerBalancePlatform.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CustomerBalancePlatform.Services.Providers
 {
-    public class CustomerService
+    public class CustomerService : ICustomerService
     {
         private readonly CustomerContext _dbContext;
         public CustomerService(CustomerContext dbContext)
