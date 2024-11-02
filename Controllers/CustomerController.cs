@@ -18,9 +18,9 @@ namespace CustomerBalancePlatform.Controllers
         }
 
         [HttpGet]
-        public IActionResult GetAllCustomers()
+        public IActionResult GetAllCustomers(int pageNumber, int pageSize)
         {
-            var result = _customerService.GetCustomersAsync().Result;
+            var result = _customerService.GetCustomersAsync(pageNumber,pageSize).Result;
             return Ok(result);
         }
 

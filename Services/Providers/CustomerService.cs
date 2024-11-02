@@ -2,6 +2,7 @@
 using CustomerBalancePlatform.Models;
 using CustomerBalancePlatform.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace CustomerBalancePlatform.Services.Providers
 {
@@ -16,9 +17,19 @@ namespace CustomerBalancePlatform.Services.Providers
             _auditLogDbContext = auditLogDbContext;
         }
 
-        public async Task<IEnumerable<Customer>> GetCustomersAsync()
+        public async Task<PaginatedResult<Customer>> GetCustomersAsync(int pageNumber, int pageSize)
         {
-            return _dbContext.Customers?.OrderByDescending(c=>c.CreatedAt).ToList() ?? new List<Customer>();
+            if (_dbContext.Customers == null)
+                return new PaginatedResult<Customer>(new List<Customer>(), 0, pageNumber, pageSize);
+
+            var totalRecords = await _dbContext.Customers.CountAsync();
+            var customers = await _dbContext.Customers
+                .OrderByDescending(c => c.CreatedAt)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return new PaginatedResult<Customer>(customers, totalRecords, pageNumber, pageSize);
         }
 
         public async Task<Customer?> GetCustomerByIdAsync(string id)

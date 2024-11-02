@@ -5,7 +5,7 @@ namespace CustomerBalancePlatform.Services.Interfaces
 {
     public interface ICustomerService
     {
-        Task<IEnumerable<Customer>> GetCustomersAsync();
+        Task<PaginatedResult<Customer>> GetCustomersAsync(int pageNumber, int pageSize);
         Task<Customer?> GetCustomerByIdAsync(string id);
         Task<Customer?> AddCustomerAsync(SaveCustomerRequest request);
         Task<Customer?> UpdateCustomerAsync(string id, UpdateCustomerRequest updatedCustomer);
