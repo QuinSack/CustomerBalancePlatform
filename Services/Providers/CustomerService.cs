@@ -8,14 +8,17 @@ namespace CustomerBalancePlatform.Services.Providers
     public class CustomerService : ICustomerService
     {
         private readonly CustomerContext _dbContext;
-        public CustomerService(CustomerContext dbContext)
+        private readonly AuditLogContext _auditLogDbContext;
+
+        public CustomerService(CustomerContext dbContext, AuditLogContext auditLogDbContext)
         {
             _dbContext = dbContext;
+            _auditLogDbContext = auditLogDbContext;
         }
 
         public async Task<IEnumerable<Customer>> GetCustomersAsync()
         {
-            return _dbContext.Customers?.ToList() ?? new List<Customer>();
+            return _dbContext.Customers?.OrderByDescending(c=>c.CreatedAt).ToList() ?? new List<Customer>();
         }
 
         public async Task<Customer?> GetCustomerByIdAsync(string id)
@@ -44,6 +47,16 @@ namespace CustomerBalancePlatform.Services.Providers
 
             await _dbContext.Customers.AddAsync(customer);
             await _dbContext.SaveChangesAsync();
+
+            var auditLog = new AuditLog
+            {
+                Action = $"New customer {customer.Name} with mobile number {customer.ContactInformation.PrimaryMobileNumber} added at {customer.CreatedAt}",
+                LogDate = DateTime.UtcNow
+            };
+
+            await _auditLogDbContext.AuditLogs!.AddAsync(auditLog);
+            await _auditLogDbContext.SaveChangesAsync();
+
             return customer;
         }
 
@@ -52,6 +65,19 @@ namespace CustomerBalancePlatform.Services.Providers
             var customer = await _dbContext.Customers!.FindAsync(id);
             if (customer == null) return null;
 
+            //for audit log
+            var previousCustomerState = new
+            {
+                customer.Name,
+                customer.Description,
+                customer.ContactInformation.Email,
+                customer.ContactInformation.PrimaryMobileNumber,
+                customer.ContactInformation.SecondaryMobileNumber,
+                customer.ContactInformation.Address,
+                customer.CurrentBalance
+            };
+
+            //update customer details
             customer.Name = updatedCustomer.Name;
             customer.Description = updatedCustomer.Description;
             customer.ContactInformation.Email = updatedCustomer.ContactInformation.Email;
@@ -62,6 +88,20 @@ namespace CustomerBalancePlatform.Services.Providers
             customer.LastUpdatedAt = updatedCustomer.LastUpdatedAt;
 
             await _dbContext.SaveChangesAsync();
+
+            var auditLog = new AuditLog
+            {
+                Action = $"Previous State: {previousCustomerState}; Updated State: " +
+                  $"{{ Name: {updatedCustomer.Name}, Description: {updatedCustomer.Description}, " +
+                  $"Email: {updatedCustomer.ContactInformation.Email}, PrimaryMobileNumber: {updatedCustomer.ContactInformation.PrimaryMobileNumber}, " +
+                  $"SecondaryMobileNumber: {updatedCustomer.ContactInformation.SecondaryMobileNumber}, " +
+                  $"Address: {updatedCustomer.ContactInformation.Address}, CurrentBalance: {updatedCustomer.CurrentBalance} }}",
+                LogDate = DateTime.UtcNow
+            };
+
+            await _auditLogDbContext.AuditLogs!.AddAsync(auditLog);
+            await _auditLogDbContext.SaveChangesAsync();
+
             return customer;
         }
 
@@ -72,6 +112,16 @@ namespace CustomerBalancePlatform.Services.Providers
 
             _dbContext.Customers.Remove(customer);
             await _dbContext.SaveChangesAsync();
+
+            var auditLog = new AuditLog
+            {
+                Action = $"Customer {customer.Name} with mobile number {customer.ContactInformation.PrimaryMobileNumber} removed from our database at {DateTime.UtcNow}",
+                LogDate = DateTime.UtcNow
+            };
+
+            await _auditLogDbContext.AuditLogs!.AddAsync(auditLog);
+            await _auditLogDbContext.SaveChangesAsync();
+
             return true;
         }
     }
