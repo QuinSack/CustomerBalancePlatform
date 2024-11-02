@@ -1,4 +1,5 @@
-﻿using CustomerBalancePlatform.Models;
+﻿using CustomerBalancePlatform.Dtos;
+using CustomerBalancePlatform.Models;
 
 namespace CustomerBalancePlatform.Services.Interfaces
 {
@@ -6,8 +7,8 @@ namespace CustomerBalancePlatform.Services.Interfaces
     {
         Task<IEnumerable<Customer>> GetCustomersAsync();
         Task<Customer?> GetCustomerByIdAsync(string id);
-        Task<Customer?> AddCustomerAsync(Customer customer);
-        Task<Customer?> UpdateCustomerAsync(string id, Customer updatedCustomer);
+        Task<Customer?> AddCustomerAsync(SaveCustomerRequest request);
+        Task<Customer?> UpdateCustomerAsync(string id, UpdateCustomerRequest updatedCustomer);
         Task<bool> DeleteCustomerAsync(string id);
     }
 }
