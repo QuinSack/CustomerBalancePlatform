@@ -1,4 +1,5 @@
-﻿using CustomerBalancePlatform.Models;
+﻿using CustomerBalancePlatform.Dtos;
+using CustomerBalancePlatform.Models;
 using CustomerBalancePlatform.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
@@ -22,16 +23,31 @@ namespace CustomerBalancePlatform.Services.Providers
             return _dbContext.Customers == null ? null : await _dbContext.Customers.FindAsync(id);
         }
 
-        public async Task<Customer?> AddCustomerAsync(Customer customer)
+        public async Task<Customer?> AddCustomerAsync(SaveCustomerRequest request)
         {
             if (_dbContext.Customers == null) return null;
+
+            var customer = new Customer
+            {
+                Name = request.Name,
+                Description = request.Description,
+                ContactInformation = new ContactInformation
+                {
+                    Email = request.ContactInformation.Email,
+                    PrimaryMobileNumber = request.ContactInformation.PrimaryMobileNumber,
+                    SecondaryMobileNumber = request.ContactInformation.SecondaryMobileNumber,
+                    Address = request.ContactInformation.Address
+                },
+                CurrentBalance = request.CurrentBalance,
+                CreatedAt = DateTime.UtcNow
+            };
 
             await _dbContext.Customers.AddAsync(customer);
             await _dbContext.SaveChangesAsync();
             return customer;
         }
 
-        public async Task<Customer?> UpdateCustomerAsync(string id, Customer updatedCustomer)
+        public async Task<Customer?> UpdateCustomerAsync(string id, UpdateCustomerRequest updatedCustomer)
         {
             var customer = await _dbContext.Customers!.FindAsync(id);
             if (customer == null) return null;
@@ -43,6 +59,7 @@ namespace CustomerBalancePlatform.Services.Providers
             customer.ContactInformation.SecondaryMobileNumber = updatedCustomer.ContactInformation.SecondaryMobileNumber;
             customer.ContactInformation.Address = updatedCustomer.ContactInformation.Address;
             customer.CurrentBalance = updatedCustomer.CurrentBalance;
+            customer.LastUpdatedAt = updatedCustomer.LastUpdatedAt;
 
             await _dbContext.SaveChangesAsync();
             return customer;

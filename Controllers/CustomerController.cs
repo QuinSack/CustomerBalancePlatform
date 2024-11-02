@@ -1,4 +1,5 @@
-﻿using CustomerBalancePlatform.Models;
+﻿using CustomerBalancePlatform.Dtos;
+using CustomerBalancePlatform.Models;
 using CustomerBalancePlatform.Services.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -31,14 +32,14 @@ namespace CustomerBalancePlatform.Controllers
         }
 
         [HttpPost]
-        public IActionResult CreateCustomer(Customer customer)
+        public IActionResult CreateCustomer(SaveCustomerRequest customer)
         {
             var result = _customerService.AddCustomerAsync(customer).Result;
             return Ok(result);
         }
 
         [HttpPut]
-        public IActionResult UpdateCustomerDetails(string id, Customer updatedCustomer)
+        public IActionResult UpdateCustomerDetails(string id, UpdateCustomerRequest updatedCustomer)
         {
             var result = _customerService.UpdateCustomerAsync(id, updatedCustomer).Result;
             return Ok(result);
